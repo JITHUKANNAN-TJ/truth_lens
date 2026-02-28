@@ -8,97 +8,45 @@ st.set_page_config(page_title="TruthLens - Fake News Detector", page_icon="🔍"
 
 # Custom CSS for UI mimicking the image
 # Updated CSS to match TruthLens UI exactly
-st.markdown("""
-<style>
-    /* Full Page Background */
-    .stApp {
-        background: radial-gradient(circle at center, #1e2235 0%, #11131f 100%);
-        font-family: 'Inter', -apple-system, sans-serif;
-    }
+from flask import Flask, render_template, request, jsonify
+import joblib
+import math
+
+app = Flask(__name__)
+
+# Load the AI models
+model = joblib.load('fake_news_model.joblib')
+vectorizer = joblib.load('tfidf_vectorizer.joblib')
+
+@app.route('/')
+def home():
+    # This looks into the /templates folder for index.html
+    return render_template('index.html')
+
+@app.route('/predict', methods=['POST'])
+def predict():
+    data = request.get_json()
+    text = data.get('text', '')
+
+    if not text:
+        return jsonify({'error': 'No text provided'}), 400
+
+    # AI Logic
+    text_vectorized = vectorizer.transform([text])
+    prediction = int(model.predict(text_vectorized)[0]) # 0 for Real, 1 for Fake
     
-    /* Hide Streamlit components */
-    header {visibility: hidden;}
-    footer {visibility: hidden;}
-    [data-testid="stHeader"] {display: none;}
+    # Calculate confidence score
+    decision = model.decision_function(text_vectorized)[0]
+    confidence = 1 / (1 + math.exp(-abs(decision))) 
+    
+    return jsonify({
+        'prediction': 'REAL' if prediction == 0 else 'FAKE',
+        'confidence': round(confidence * 100, 2)
+    })
 
-    /* TruthLens Header Styling */
-    .header-container {
-        text-align: center;
-        padding-top: 5rem;
-        margin-bottom: 0.5rem;
-    }
-    .title-truth {
-        font-size: 4rem;
-        font-weight: 700;
-        color: #ffffff;
-    }
-    .title-lens {
-        font-size: 4rem;
-        font-weight: 700;
-        background: linear-gradient(90deg, #9370DB, #da70d6);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-    }
-    .subtitle {
-        text-align: center;
-        color: #8a8d9b;
-        font-size: 1.1rem;
-        margin-bottom: 3rem;
-    }
-
-    /* Glassmorphism Container */
-    .form-box {
-        background: rgba(255, 255, 255, 0.03);
-        padding: 40px;
-        border-radius: 24px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(10px);
-        max-width: 800px;
-        margin: 0 auto;
-    }
-
-    /* Text Area Styling */
-    .stTextArea textarea {
-        background-color: #161826 !important;
-        color: #ffffff !important;
-        border: 1px solid #2a2d3e !important;
-        border-radius: 12px !important;
-        padding: 20px !important;
-        font-size: 1rem !important;
-        height: 200px !important;
-    }
-
-    /* Analyze Button Position and Style */
-    div.stButton {
-        display: flex;
-        justify-content: flex-end;
-        margin-top: 20px;
-    }
-    div.stButton > button {
-        background: linear-gradient(90deg, #4d76f1, #6b8cf5) !important;
-        color: white !important;
-        border: none !important;
-        border-radius: 10px !important;
-        padding: 0.8rem 2.5rem !important;
-        font-weight: 600 !important;
-        transition: 0.3s !important;
-    }
-    div.stButton > button:hover {
-        opacity: 0.9;
-        transform: scale(1.02);
-    }
-
-    /* Centered Footer */
-    .footer-text {
-        text-align: center;
-        color: #5a5d72;
-        font-size: 0.9rem;
-        margin-top: 4rem;
-        padding-bottom: 2rem;
-    }
-</style>
-""", unsafe_allow_html=True)
-
+if __name__ == '__main__':
+    # use_reloader=False prevents the "signal" error seen in your screenshot
+    app.run(debug=True, use_reloader=False)
 # Load the model and vectorizer at startup
 @st.cache_resource
 def load_models():
@@ -160,4 +108,5 @@ else:
 
 # Footer
 st.markdown('<div class="footer-text">Powered by LinearSVC & TF-IDF • IBM Project 2026</div>', unsafe_allow_html=True)
+
 
