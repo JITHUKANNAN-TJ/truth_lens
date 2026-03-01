@@ -34,11 +34,23 @@ st.markdown("""
 
     /* Text Area Styling */
     .stTextArea textarea {
-        background-color: #161826 !important;
-        color: #ffffff !important;
-        border: 1px solid #2a2d3e !important;
-        border-radius: 12px !important;
-        height: 180px !important;
+        position: relative;
+    top: 4px;
+    /* padding-bottom
+Shorthand property to set values for the thickness of the padding area. If left is omitted, it is the same as right. If bottom is omitted it is the same as top, if right is omitted it is the same as top. The value may not be negative.
+
+Widely available across major browsers (Baseline since January 2018)
+Learn more
+
+Don't show
+: 10px; */
+    bottom: 10px;
+    background-color: #161826 !important;
+    color: #ffffff !important;
+    border: 1px solid #2a2d3e !important;
+    border-radius: 12px !important;
+    height: 180px !important;
+    /* padding-bottom: 100px;
     }
 
     /* Button Alignment */
@@ -105,3 +117,4 @@ else:
 
 # 6. Footer
 st.markdown('<br><div style="text-align: center; color: #5a5d72; font-size: 0.8rem;">Powered by LinearSVC & TF-IDF • IBM Project 2026</div>', unsafe_allow_html=True)
+
